@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Widget</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .weather-widget {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .weather-widget h2 {
+            margin: 0 0 10px;
+        }
+        .weather-widget .temp {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .weather-widget .condition {
+            text-transform: capitalize;
+        }
+    </style>
+</head>
+<body>
+    <div class="weather-widget">
+        <h2>Weather</h2>
+        <div id="location"></div>
+        <img id="weather-icon" src="" alt="Weather icon" />
+        <div id="temperature" class="temp"></div>
+        <div id="condition" class="condition"></div>
+    </div>
+
+    <script>
+        const apiKey = "c8d1e37364426980a368c764c6943d38";
+
+        async function fetchWeather(lat, lon) {
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+            const locEl = document.getElementById("location");
+            const tempEl = document.getElementById("temperature");
+            const condEl = document.getElementById("condition");
+            const iconEl = document.getElementById("weather-icon");
+
+            try {
+                locEl.textContent = 'Loading...';
+                tempEl.textContent = '';
+                condEl.textContent = '';
+                iconEl.src = '';
+
+                const resp = await fetch(url);
+                if (!resp.ok) {
+                    const errText = await resp.text();
+                    throw new Error(`API error ${resp.status}: ${errText}`);
+                }
+                const data = await resp.json();
+
+                const name = data.name || 'Unknown location';
+                const temp = data.main && typeof data.main.temp !== 'undefined' ? Math.round(data.main.temp) + '°C' : 'N/A';
+                const weather = data.weather && data.weather[0] ? data.weather[0] : null;
+
+                locEl.textContent = name;
+                tempEl.textContent = temp;
+                condEl.textContent = weather ? weather.description : '';
+
+                if (weather && weather.icon) {
+                    iconEl.src = `https://openweathermap.org/img/wn/${weather.icon}@2x.png`;
+                    iconEl.alt = weather.description || 'Weather icon';
+                    iconEl.style.display = '';
+                } else {
+                    iconEl.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Error fetching weather data:', err);
+                locEl.textContent = 'Could not fetch weather data';
+                tempEl.textContent = '';
+                condEl.textContent = '';
+                iconEl.style.display = 'none';
+            }
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => fetchWeather(position.coords.latitude, position.coords.longitude),
+                    () => fetchWeather(51.5074, -0.1278) // fallback to London
+                );
+            } else {
+                fetchWeather(51.5074, -0.1278);
+            }
+        }
+
+        getLocation();
+    </script>
+</body>
+</html>
