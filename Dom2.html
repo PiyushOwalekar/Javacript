@@ -1,0 +1,22 @@
+<html lan="en">
+<body>
+
+    <div id = "box" class = "section">
+        hello
+        <span>earth</span>
+    </div>
+
+    <button id = "btn">update</button>
+
+    <script>
+        let spantag = document.querySelector("span")
+           //finding/getting btn
+        let btn = document.querySelector('#btn')
+        //function name
+        // btn.addEventListener('click' , name)
+        btn.addEventListener('click', () => {
+            spantag.textContent = "world"
+        })
+    </script>
+</body>
+</html>
