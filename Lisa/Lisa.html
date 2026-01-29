@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Fetch</title>
+</head>
+<body>
+    <div id="weather">Loading weather...</div>
+    <script>
+        async function fetchWeather() {
+            try {
+                const url = "https://api.open-meteo.com/v1/forecast?latitude=35&longitude=139&current_weather=true&temperature_unit=celsius";
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok: ' + response.status);
+                const data = await response.json();
+
+                const el = document.getElementById('weather');
+                if (data && data.current_weather && typeof data.current_weather.temperature !== 'undefined') {
+                    const temp = data.current_weather.temperature;
+                    el.textContent = `Current temperature at (${data.latitude}, ${data.longitude}): ${temp} °C`;
+                } else {
+                    el.textContent = 'No current weather data available.';
+                    console.log('Full response:', data);
+                }
+            } catch (error) {
+                const el = document.getElementById('weather');
+                el.textContent = 'Error fetching weather. See console for details.';
+                console.error('Fetch error:', error);
+            }
+        }
+
+        fetchWeather();
+    </script>
+</body>
+</html>
