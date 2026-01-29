@@ -92,7 +92,7 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     position => fetchWeather(position.coords.latitude, position.coords.longitude),
-                    () => fetchWeather(51.5074, -0.1278) // fallback to London
+                    () => fetchWeather(51.5074, -0.1278) 
                 );
             } else {
                 fetchWeather(51.5074, -0.1278);
