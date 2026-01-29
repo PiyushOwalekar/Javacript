@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 1</title>
+</head>
+<body>
+    <form action="">
+        <label for="fname">
+            username
+        </label>
+        <input type="text" name="username" id="fname">
+    </form>
+    <script>
+        let userInput = document.querySelector('#fname')
+
+        userInput.value = localStorage.getItem('fname') || '';
+
+        userInput.addEventListener('input', () => {
+            localStorage.setItem('fname', userInput.value);
+        });
+    </script>
+</body>
+</html>
