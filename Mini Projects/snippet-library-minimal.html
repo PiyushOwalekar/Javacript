@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Code Snippet Library</title>
+</head>
+
+<body>
+    <h1> Code Snippet Library</h1>
+    <input id="search" placeholder="Search..." size="40" oninput="debounce(search)">
+    <button onclick="show()">+ Add</button>
+    <button onclick="clear()">Clear All</button>
+    <hr>
+
+    <div id="form" hidden>
+        <input id="title" placeholder="Title*" size="40"><br>
+        <select id="lang">
+            <option value="">Language*</option>
+            <option>javascript</option>
+            <option>jsx</option>
+            <option>python</option>
+            <option>html</option>
+            <option>css</option>
+            <option>sql</option>
+        </select><br>
+        <textarea id="desc" placeholder="Description*" rows="2" cols="40"></textarea><br>
+        <textarea id="code" placeholder="Code*" rows="8" cols="40"></textarea><br>
+        <input id="tags" placeholder="Tags" size="40"><br>
+        <button onclick="save()">Save</button>
+        <button onclick="show()">Cancel</button>
+        <hr>
+    </div>
+
+    <div id="list"></div>
+
+    <script>
+        let data = JSON.parse(localStorage.getItem('snippets') || '[]');
+        let timer;
+
+        function render(arr = data) {
+            list.innerHTML = arr.length ? arr.map(s => `
+                <hr><h3>${esc(s.title)}</h3>
+                <b>Lang:</b> ${esc(s.lang)} | <b>Tags:</b> ${s.tags.join(', ')}<br>
+                ${esc(s.desc)}<br>
+                <pre>${esc(s.code)}</pre>
+                <button onclick="copy('${s.id}')">Copy</button>
+                <button onclick="del('${s.id}')">Delete</button>
+            `).join('') : '<p>No snippets found</p>';
+        }
+
+        function show() {
+            form.hidden = !form.hidden;
+            if (form.hidden) title.value = lang.value = desc.value = code.value = tags.value = '';
+        }
+
+        function save() {
+            if (!title.value || !lang.value || !desc.value || !code.value) return alert('Fill all required fields');
+            data.unshift({
+                id: Date.now(),
+                title: title.value,
+                lang: lang.value,
+                desc: desc.value,
+                code: code.value,
+                tags: tags.value ? tags.value.split(',').map(t => t.trim()) : []
+            });
+            localStorage.setItem('snippets', JSON.stringify(data));
+            render();
+            show();
+            alert('Saved!');
+        }
+
+        function search() {
+            let q = document.getElementById('search').value.toLowerCase();
+            if (!q) return render();
+            let keys = q.split(' ');
+            render(data.filter(s => {
+                let txt = (s.title + s.desc + s.lang + s.code + s.tags.join(' ')).toLowerCase();
+                return keys.every(k => txt.includes(k));
+            }));
+        }
+
+        function debounce(fn) {
+            clearTimeout(timer);
+            timer = setTimeout(fn, 300);
+        }
+
+        function copy(id) {
+            let s = data.find(x => x.id == id);
+            navigator.clipboard.writeText(s.code).then(() => alert('Copied!')).catch(() => {
+                let t = document.createElement('textarea');
+                t.value = s.code;
+                document.body.appendChild(t);
+                t.select();
+                document.execCommand('copy');
+                document.body.removeChild(t);
+                alert('Copied!');
+            });
+        }
+
+        function del(id) {
+            if (!confirm('Delete?')) return;
+            data = data.filter(s => s.id != id);
+            localStorage.setItem('snippets', JSON.stringify(data));
+            search();
+        }
+
+        function clear() {
+            if (!data.length || !confirm('Delete all?')) return;
+            data = [];
+            localStorage.clear();
+            document.getElementById('search').value = '';
+            render();
+        }
+
+        function esc(txt) {
+            let d = document.createElement('div');
+            d.textContent = txt;
+            return d.innerHTML;
+        }
+
+        if (!data.length) {
+            data = [
+                { id: 1, title: 'React Button', lang: 'jsx', desc: 'Reusable button component', code: 'const Button = ({label, onClick}) => <button onClick={onClick}>{label}</button>;', tags: ['react'] },
+                { id: 2, title: 'Debounce', lang: 'javascript', desc: 'Delay function execution', code: 'const debounce = (fn, ms) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; };', tags: ['utility'] },
+                { id: 3, title: 'Fetch API', lang: 'javascript', desc: 'API call with error handling', code: 'async function get(url) { try { const r = await fetch(url); return await r.json(); } catch(e) { console.error(e); } }', tags: ['api'] }
+            ];
+            localStorage.setItem('snippets', JSON.stringify(data));
+        }
+
+        render();
+    </script>
+</body>
+
+</html>
